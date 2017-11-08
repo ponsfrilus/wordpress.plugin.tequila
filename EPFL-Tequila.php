@@ -26,6 +26,7 @@ class TequilaLogin {
 	}
 
     function hook() {
+        add_action( 'init', array($this, 'maybe_back_from_tequila') );
         add_action('admin_menu', array($this, 'action_admin_menu') );
         add_action('admin_init', array($this, 'action_admin_init') );
         add_action('wp_authenticate', array( $this, 'start_authentication' ) );
@@ -193,7 +194,36 @@ class TequilaLogin {
                   'personaltitle',
                   'email', 'title', 'title-en',
                   'uniqueid'));
-        $client->Authenticate(plugin_dir_url( __FILE__ ) . "/back-from-Tequila.php");
+        $client->Authenticate(admin_url( "?back-from-Tequila=1" ));
+    }
+
+    function maybe_back_from_tequila() {
+        if (! $_REQUEST['back-from-Tequila']) return;
+
+        error_log("Back from Tequila with ". $_SERVER['QUERY_STRING'] . " !!");
+        $client = new TequilaClient();
+        $tequila_data = $client->fetchAttributes($_GET["key"]);
+        $user = $this->update_user($tequila_data);
+        if ($user) {
+            wp_set_auth_cookie( $user->ID, true );
+            wp_redirect(admin_url());
+            exit;
+        } else {
+            http_response_code(404);
+            // TODO: perhaps we can tell the user to fly a kite in a
+            // more beautiful way
+			echo __('Cet utilisateur est inconnu', 'epfl-tequila');
+            die();
+        }
+    }
+
+    function update_user($tequila_data) {
+        // TODO: improve a lot!
+        // * Automatically update all supplementary fields (e.g. email addres)
+        //   from the authoritative Tequila response
+        // * Depending on some policy setting, maybe auto-update user
+        //   privileges
+        return get_user_by("login", $tequila_data["username"]);
     }
 }
 
