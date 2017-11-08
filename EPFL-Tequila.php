@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( 'Access denied.' );
 }
 
+require_once (dirname(__FILE__) . "/tequila_client.php");
+
 class TequilaLogin {
 	static $instance = false;
 	var $prefix = 'tequila_';
@@ -26,6 +28,8 @@ class TequilaLogin {
     function hook() {
         add_action('admin_menu', array($this, 'action_admin_menu') );
         add_action('admin_init', array($this, 'action_admin_init') );
+        add_action('wp_authenticate', array( $this, 'start_authentication' ) );
+
     }
 
     function get_option($name, $default = false, $use_cache = true) {
@@ -99,6 +103,10 @@ class TequilaLogin {
 	    </div>';
     }
 
+    function start_authentication() {
+        $client = new TequilaClient();
+        $client->Authenticate(plugin_dir_url( __FILE__ ) . "/back-from-Tequila.php");
+    }
 }
 
 TequilaLogin::getInstance()->hook();
