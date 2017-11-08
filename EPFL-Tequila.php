@@ -25,6 +25,7 @@ class TequilaLogin {
 
     function hook() {
         add_action('admin_menu', array($this, 'action_admin_menu') );
+        add_action('admin_init', array($this, 'action_admin_init') );
     }
 
     function get_option($name, $default = false, $use_cache = true) {
@@ -55,6 +56,13 @@ class TequilaLogin {
 		return $this->_is_network_version;
 	}
 
+	function action_admin_init () {
+        if ($_SERVER['REQUEST_METHOD'] === "POST") {
+            check_admin_referer('epfl-tequila-save-options');
+            $this->admin_menu_save_acl($_POST["acl_level"]);
+        }
+    }
+
 	function action_admin_menu () {
         add_options_page("EPFL Tequila settings",
                          "Tequila",
@@ -66,6 +74,30 @@ class TequilaLogin {
 	function admin_page () {
 		include 'admin-page.php';
 	}
+
+    function admin_menu_save_acl($level) {
+        $this->add_admin_notice("notice-success is-dismissible",
+                                __("Merci pour " . $level . " au revoir", "epfl-tequila"));
+        error_log("admin_menu_save_acl(" . $level . ")");
+    }
+
+	function add_admin_notice($classes, $message){
+         add_action("admin_notices", function() use ($classes, $message) {
+                 echo "<div class=\"notice $classes\"><p>$message.</p></div>";
+         });
+	}
+
+	function saved_admin_OK(){
+	    echo '<div class="updated">
+	       <p>Configuration Tequila mise à jour.</p>
+	    </div>';
+    }
+
+	function saved_admin_error(){
+	    echo '<div class="error">
+	       <p>Erreur !.</p>
+	    </div>';
+    }
 
 }
 
