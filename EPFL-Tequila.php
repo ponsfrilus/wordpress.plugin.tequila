@@ -72,8 +72,8 @@ class TequilaLogin
         $option_values = get_option($option_name);
 
         $default_values = array(
-            'number' => 500,
-            'color'  => 'blue',
+            'groups' => 'stiitweb',
+            'faculty'  => 'STI',
             'long'   => ''
         );
 
@@ -89,63 +89,62 @@ class TequilaLogin
         /* No argument has any relation to the prvious register_setting(). */
         add_settings_section(
             'section_1', // ID
-            'Some text fields', // Title
-            't5_sae_render_section_1', // print output
-            'epfl_tequila_slug' // menu slug, see action_admin_menu()
-        );
-
-        add_settings_field(
-            'section_1_field_1',
-            'A Number',
-            't5_sae_render_section_1_field_1',
-            'epfl_tequila_slug',  // menu slug, see action_admin_menu()
-            'section_1',
-            array(
-                'label_for'   => 'label1', // makes the field name clickable,
-                'name'        => 'number', // value for 'name' attribute
-                'value'       => esc_attr($data['number']),
-                'option_name' => $option_name
-            )
-        );
-        add_settings_field(
-            'section_1_field_2',
-            'Select',
-            't5_sae_render_section_1_field_2',
-            'epfl_tequila_slug',  // menu slug, see action_admin_menu()
-            'section_1',
-            array(
-                'label_for'   => 'label2', // makes the field name clickable,
-                'name'        => 'color', // value for 'name' attribute
-                'value'       => esc_attr($data['color']),
-                'options'     => array(
-                    'blue'  => 'Blue',
-                    'red'   => 'Red',
-                    'black' => 'Black'
-                ),
-                'option_name' => $option_name
-            )
+            'A propos', // Title
+            'epfl_tequila_render_section_about', // print output
+            'epfl_tequila' // menu slug, see action_admin_menu()
         );
 
         add_settings_section(
             'section_2', // ID
-            'Textarea', // Title
-            't5_sae_render_section_2', // print output
-            'epfl_tequila_slug' // menu slug, see action_admin_menu()
+            'Aide', // Title
+            'epfl_tequila_render_section_help', // print output
+            'epfl_tequila' // menu slug, see action_admin_menu()
+        );
+
+        add_settings_section(
+            'section_3', // ID
+            'Paramètres', // Title
+            'epfl_tequila_render_section_parameters', // print output
+            'epfl_tequila' // menu slug, see action_admin_menu()
         );
 
         add_settings_field(
-            'section_2_field_1',
-            'Notes',
-            't5_sae_render_section_2_field_1',
-            'epfl_tequila_slug',  // menu slug, see action_admin_menu()
-            'section_2',
+            'section_3_field_1',
+            'Faculté',
+            'epfl_tequila_render_dropdown',
+            'epfl_tequila',  // menu slug, see action_admin_menu()
+            'section_3',
             array(
-                'label_for'   => 'label3', // makes the field name clickable,
-                'name'        => 'long', // value for 'name' attribute
-                'value'       => esc_textarea($data['long']),
+                'label_for'   => 'faculty', // makes the field name clickable,
+                'name'        => 'faculty', // value for 'name' attribute
+                'value'       => esc_attr($data['faculty']),
+                'options'     => array(
+                        'ENAC'      => 'Architecture, Civil and Environmental Engineering ENAC',
+                        'SB'        => 'Basic Sciences SB',
+                        'STI'       => 'Engineering STI',
+                        'IC'        => 'Computer and Communication Sciences IC',
+                        'SV'        => 'Life Sciences SV',
+                        'CDM'       => 'Management of Technology CDM',
+                        'CDH'       => 'College of Humanities CDH'
+                    ),
                 'option_name' => $option_name
             )
         );
+
+        add_settings_field(
+            'section_3_field_2',
+            'Groupes administrateur',
+            'epfl_tequila_render_input',
+            'epfl_tequila',  // menu slug, see action_admin_menu()
+            'section_3',
+            array(
+                'label_for'   => 'groups', // makes the field name clickable,
+                'name'        => 'groups', // value for 'name' attribute
+                'value'       => esc_attr($data['groups']),
+                'option_name' => $option_name
+            )
+        );
+
     }
 
     public function eg_setting_section_info()
@@ -173,11 +172,11 @@ class TequilaLogin
     public function action_admin_menu()
     {
         add_options_page(
-            __('Réglages de Tequila', 'epfl-tequila'), // $page_title,
-            __('Réglages de Tequila', 'epfl-tequila'), // $menu_title,
-            'manage_options',          // $capability,
-            'epfl_tequila_slug',       // $menu_slug
-            array($this, 'render_settings')       // Callback
+            __('Réglages de Tequila', 'epfl-tequila'),  // $page_title,
+            __('Tequila (auth)', 'epfl-tequila'),       // $menu_title,
+            'manage_options',                           // $capability,
+            'epfl_tequila',                             // $menu_slug
+            array($this, 'render_settings')             // Callback
         );
     }
 
@@ -188,9 +187,10 @@ class TequilaLogin
             <h2><?php print $GLOBALS['title']; ?></h2>
             <form action="options.php" method="POST">
                 <?php
-                settings_fields('plugin:epfl-tequila-optiongroup');
-            do_settings_sections('epfl_tequila_slug');
-            submit_button(); ?>
+                    settings_fields('plugin:epfl-tequila-optiongroup');
+                    do_settings_sections('epfl_tequila');
+                    submit_button();
+                ?>
             </form>
         </div>
         <?php
@@ -201,10 +201,14 @@ class TequilaLogin
     {
         $client = new TequilaClient();
         $client->SetApplicationName(__('Administration WordPress — ', 'epfl-tequila') . get_bloginfo('name'));
-        $client->SetWantedAttributes(array('name', 'firstname', 'displayname', 'username',
-                  'personaltitle',
-                  'email', 'title', 'title-en',
-                  'uniqueid'));
+        $client->SetWantedAttributes(array( 'name',
+                                            'firstname',
+                                            'displayname',
+                                            'username',
+                                            'personaltitle',
+                                            'email',
+                                            'title', 'title-en',
+                                            'uniqueid'));
         $client->Authenticate(admin_url("?back-from-Tequila=1"));
     }
 
@@ -242,12 +246,25 @@ class TequilaLogin
     }
 }
 
-function t5_sae_render_section_1()
+function epfl_tequila_render_section_about() //t5_sae_render_section_1()
 {
-    print '<p>Pick a number between 1 and 1000, and choose a color.</p>';
+    echo __('<p><a href="https://github.com/epfl-sti/wordpress.plugin.tequila">EPFL-tequila</a>
+    permet l’utilisation de <a href="https://tequila.epfl.ch/">Tequila</a>
+    (Tequila est un système fédéré de gestion d’identité. Il fournit les moyens
+    d’authentifier des personnes dans un réseau d’organisations) avec
+    WordPress.</p>', 'epfl-tequila');
 }
 
-function t5_sae_render_section_1_field_1($args)
+function epfl_tequila_render_section_help() //t5_sae_render_section_2()
+{
+    echo __('<p>En cas de problème avec EPFL-tequila veuillez créer une
+    <a href="https://github.com/epfl-sti/wordpress.plugin.tequila/issues/new"
+    target="_blank">issue</a> sur le dépôt
+    <a href="https://github.com/epfl-sti/wordpress.plugin.tequila/issues">
+    GitHub</a>.</p>', 'epfl-tequila');
+}
+
+function epfl_tequila_render_input($args)
 {
     /* Creates this markup:
     /* <input name="plugin:t5_sae_option_name[number]"
@@ -262,7 +279,7 @@ function t5_sae_render_section_1_field_1($args)
     // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
 }
 
-function t5_sae_render_section_1_field_2($args)
+function epfl_tequila_render_dropdown($args)
 {
     printf(
         '<select name="%1$s[%2$s]" id="%3$s">',
@@ -285,12 +302,7 @@ function t5_sae_render_section_1_field_2($args)
     // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
 }
 
-function t5_sae_render_section_2()
-{
-    print '<p>Makes some notes.</p>';
-}
-
-function t5_sae_render_section_2_field_1($args)
+function epfl_tequila_render_textarea($args)
 {
     printf(
         '<textarea name="%1$s[%2$s]" id="%3$s" rows="10" cols="30" class="code">%4$s</textarea>',
