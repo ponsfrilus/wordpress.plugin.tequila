@@ -72,72 +72,72 @@ class TequilaLogin
         $option_values = get_option($option_name);
 
         $default_values = array(
-            'groups' => 'stiitweb',
-            'faculty'  => 'STI',
-            'long'   => ''
+            'groups'    => 'stiitweb',
+            'faculty'   => 'STI',
+            'long'      => ''
         );
 
         // Parse option values into predefined keys, throw the rest away.
         $data = shortcode_atts($default_values, $option_values);
 
         register_setting(
-            'plugin:epfl-tequila-optiongroup', // group, used for settings_fields()
-            $option_name,  // option name, used as key in database
-            't5_sae_validate_option'      // validation callback
+            'plugin:epfl-tequila-optiongroup',          // group, used for settings_fields()
+            $option_name,                               // option name, used as key in database
+            'validate_settings_cb'                      // validation callback
         );
 
         /* No argument has any relation to the prvious register_setting(). */
         add_settings_section(
-            'section_1', // ID
-            'A propos', // Title
-            'epfl_tequila_render_section_about', // print output
-            'epfl_tequila' // menu slug, see action_admin_menu()
+            'section_1',                                // ID
+            'A propos',                                 // Title
+            'epfl_tequila_render_section_about',        // print output
+            'epfl_tequila'                              // menu slug, see action_admin_menu()
         );
 
         add_settings_section(
-            'section_2', // ID
-            'Aide', // Title
-            'epfl_tequila_render_section_help', // print output
-            'epfl_tequila' // menu slug, see action_admin_menu()
+            'section_2',                                // ID
+            'Aide',                                     // Title
+            'epfl_tequila_render_section_help',         // print output
+            'epfl_tequila'                              // menu slug, see action_admin_menu()
         );
 
         add_settings_section(
-            'section_3', // ID
-            'Paramètres', // Title
-            'epfl_tequila_render_section_parameters', // print output
-            'epfl_tequila' // menu slug, see action_admin_menu()
+            'section_3',                                // ID
+            'Paramètres',                               // Title
+            'epfl_tequila_render_section_parameters',   // print output
+            'epfl_tequila'                              // menu slug, see action_admin_menu()
         );
 
         add_settings_field(
-            'section_3_field_1',
-            'Faculté',
-            'epfl_tequila_render_dropdown',
-            'epfl_tequila',  // menu slug, see action_admin_menu()
-            'section_3',
+            'section_3_field_1',                        // ID
+            'Faculté',                                  // Title
+            'epfl_tequila_render_dropdown',             // print output
+            'epfl_tequila',                             // menu slug, see action_admin_menu()
+            'section_3',                                // parent section
             array(
                 'label_for'   => 'faculty', // makes the field name clickable,
                 'name'        => 'faculty', // value for 'name' attribute
                 'value'       => esc_attr($data['faculty']),
                 'options'     => array(
-                        'ENAC'      => 'Architecture, Civil and Environmental Engineering ENAC',
-                        'SB'        => 'Basic Sciences SB',
-                        'STI'       => 'Engineering STI',
-                        'IC'        => 'Computer and Communication Sciences IC',
-                        'SV'        => 'Life Sciences SV',
-                        'CDM'       => 'Management of Technology CDM',
-                        'CDH'       => 'College of Humanities CDH'
+                        'ENAC'      => 'Architecture, Civil and Environmental Engineering — ENAC',
+                        'SB'        => 'Basic Sciences — SB',
+                        'STI'       => 'Engineering — STI',
+                        'IC'        => 'Computer and Communication Sciences — IC',
+                        'SV'        => 'Life Sciences — SV',
+                        'CDM'       => 'Management of Technology — CDM',
+                        'CDH'       => 'College of Humanities — CDH'
                     ),
                 'option_name' => $option_name,
-                'help' => 'Permet de sélectionner les accès par défaut.'
+                'help' => 'Permet de sélectionner les accès par défaut (droit wordpress.faculté).'
             )
         );
 
         add_settings_field(
-            'section_3_field_2',
-            'Groupes administrateur',
-            'epfl_tequila_render_input',
-            'epfl_tequila',  // menu slug, see action_admin_menu()
-            'section_3',
+            'section_3_field_2',                        // ID
+            'Groupes administrateur',                   // Title
+            'epfl_tequila_render_input',                // print output
+            'epfl_tequila',                             // menu slug, see action_admin_menu()
+            'section_3',                                // parent section
             array(
                 'label_for'   => 'groups', // makes the field name clickable,
                 'name'        => 'groups', // value for 'name' attribute
