@@ -40,10 +40,6 @@ class TequilaLogin {
         }
     }
 
-    function get_settings_obj() {
-        return $this->get_option("{$this->prefix}settings");
-    }
-
 	/**
 	 * Returns whether this plugin is currently network activated
 	 */
@@ -61,52 +57,194 @@ class TequilaLogin {
 	}
 
 	function action_admin_init () {
-        if ($_SERVER['REQUEST_METHOD'] === "POST") {
-            check_admin_referer('epfl-tequila-save-options');
-            $this->admin_menu_save_acl($_POST["acl_level"]);
+        // Use the settings API rather than writing our own <form>s and
+        // validators therefor.
+        // More at https://wordpress.stackexchange.com/a/100137
+           $option_name   = 'plugin:epfl-tequila';
+
+    // Fetch existing options.
+    $option_values = get_option( $option_name );
+
+    $default_values = array (
+        'number' => 500,
+        'color'  => 'blue',
+        'long'   => ''
+    );
+
+    // Parse option values into predefined keys, throw the rest away.
+    $data = shortcode_atts( $default_values, $option_values );
+
+    register_setting(
+        'plugin:epfl-tequila-optiongroup', // group, used for settings_fields()
+        $option_name,  // option name, used as key in database
+        't5_sae_validate_option'      // validation callback
+    );
+
+    /* No argument has any relation to the prvious register_setting(). */
+    add_settings_section(
+        'section_1', // ID
+        'Some text fields', // Title
+        't5_sae_render_section_1', // print output
+        'epfl_tequila_slug' // menu slug, see action_admin_menu()
+    );
+
+    add_settings_field(
+        'section_1_field_1',
+        'A Number',
+        't5_sae_render_section_1_field_1',
+        'epfl_tequila_slug',  // menu slug, see action_admin_menu()
+        'section_1',
+        array (
+            'label_for'   => 'label1', // makes the field name clickable,
+            'name'        => 'number', // value for 'name' attribute
+            'value'       => esc_attr( $data['number'] ),
+            'option_name' => $option_name
+        )
+    );
+    add_settings_field(
+        'section_1_field_2',
+        'Select',
+        't5_sae_render_section_1_field_2',
+        'epfl_tequila_slug',  // menu slug, see action_admin_menu()
+        'section_1',
+        array (
+            'label_for'   => 'label2', // makes the field name clickable,
+            'name'        => 'color', // value for 'name' attribute
+            'value'       => esc_attr( $data['color'] ),
+            'options'     => array (
+                'blue'  => 'Blue',
+                'red'   => 'Red',
+                'black' => 'Black'
+            ),
+            'option_name' => $option_name
+        )
+    );
+
+    add_settings_section(
+        'section_2', // ID
+        'Textarea', // Title
+        't5_sae_render_section_2', // print output
+        'epfl_tequila_slug' // menu slug, see action_admin_menu()
+    );
+
+    add_settings_field(
+        'section_2_field_1',
+        'Notes',
+        't5_sae_render_section_2_field_1',
+        'epfl_tequila_slug',  // menu slug, see action_admin_menu()
+        'section_2',
+        array (
+            'label_for'   => 'label3', // makes the field name clickable,
+            'name'        => 'long', // value for 'name' attribute
+            'value'       => esc_textarea( $data['long'] ),
+            'option_name' => $option_name
+        )
+    );
+    }
+
+    function eg_setting_section_info() {
+        echo '<p>Intro text for our settings section</p>';
+    }
+    function validate_settings_cb() {
+        if (false) {
+            add_settings_error(
+                        'plugin:epfl-tequila-optiongroup',
+                        'number-too-low',
+                        'Number must be between 1 and 1000.'
+            );
         }
     }
 
-	function action_admin_menu () {
-        add_options_page("EPFL Tequila settings",
-                         "Tequila",
-                         "manage_options",
-                         "epfl-tequila",
-                         array($this, 'admin_page'));
-	}
-
-	function admin_page () {
-		include 'admin-page.php';
-	}
-
-    function admin_menu_save_acl($level) {
-        $this->add_admin_notice("notice-success is-dismissible",
-                                __("Merci pour " . $level . " au revoir", "epfl-tequila"));
-        error_log("admin_menu_save_acl(" . $level . ")");
+    function eg_setting_info() {
+        echo '<input name="eg_setting_name" id="eg_setting_name" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'eg_setting_name' ), false ) . ' /> Explanation text';
     }
 
-	function add_admin_notice($classes, $message){
-         add_action("admin_notices", function() use ($classes, $message) {
-                 echo "<div class=\"notice $classes\"><p>$message.</p></div>";
-         });
-	}
-
-	function saved_admin_OK(){
-	    echo '<div class="updated">
-	       <p>Configuration Tequila mise à jour.</p>
-	    </div>';
+    // Spit out every knob previously registered with
+    // https://wordpress.stackexchange.com/questions/100023/settings-api-with-arrays-example
+    function action_admin_menu() {
+        add_options_page(
+            __('Réglages de Tequila', 'epfl-tequila'), // $page_title,
+            __('Réglages de Tequila', 'epfl-tequila'), // $menu_title,
+            'manage_options',          // $capability,
+            'epfl_tequila_slug',       // $menu_slug
+            array($this, 'render_settings')       // Callback
+        );
     }
 
-	function saved_admin_error(){
-	    echo '<div class="error">
-	       <p>Erreur !.</p>
-	    </div>';
-    }
+    function render_settings() {
+?>
+    <div class="wrap">
+        <h2><?php print $GLOBALS['title']; ?></h2>
+        <form action="options.php" method="POST">
+            <?php
+            settings_fields( 'plugin:epfl-tequila-optiongroup' );
+            do_settings_sections( 'epfl_tequila_slug' );
+            submit_button();
+            ?>
+        </form>
+    </div>
+    <?php    }
+
 
     function start_authentication() {
         $client = new TequilaClient();
         $client->Authenticate(plugin_dir_url( __FILE__ ) . "/back-from-Tequila.php");
     }
+}
+
+function t5_sae_render_section_1()
+{
+    print '<p>Pick a number between 1 and 1000, and choose a color.</p>';
+}
+function t5_sae_render_section_1_field_1( $args )
+{
+    /* Creates this markup:
+    /* <input name="plugin:t5_sae_option_name[number]"
+     */
+    printf(
+        '<input name="%1$s[%2$s]" id="%3$s" value="%4$s" class="regular-text">',
+        $args['option_name'],
+        $args['name'],
+        $args['label_for'],
+        $args['value']
+    );
+    // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
+}
+function t5_sae_render_section_1_field_2( $args )
+{
+    printf(
+        '<select name="%1$s[%2$s]" id="%3$s">',
+        $args['option_name'],
+        $args['name'],
+        $args['label_for']
+    );
+
+    foreach ( $args['options'] as $val => $title )
+        printf(
+            '<option value="%1$s" %2$s>%3$s</option>',
+            $val,
+            selected( $val, $args['value'], FALSE ),
+            $title
+        );
+
+    print '</select>';
+
+    // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
+}
+function t5_sae_render_section_2()
+{
+    print '<p>Makes some notes.</p>';
+}
+
+function t5_sae_render_section_2_field_1( $args )
+{
+    printf(
+        '<textarea name="%1$s[%2$s]" id="%3$s" rows="10" cols="30" class="code">%4$s</textarea>',
+        $args['option_name'],
+        $args['name'],
+        $args['label_for'],
+        $args['value']
+    );
 }
 
 TequilaLogin::getInstance()->hook();
