@@ -127,7 +127,8 @@ class TequilaLogin
                         'CDM'       => 'Management of Technology CDM',
                         'CDH'       => 'College of Humanities CDH'
                     ),
-                'option_name' => $option_name
+                'option_name' => $option_name,
+                'help' => 'Permet de sélectionner les accès par défaut.'
             )
         );
 
@@ -141,16 +142,12 @@ class TequilaLogin
                 'label_for'   => 'groups', // makes the field name clickable,
                 'name'        => 'groups', // value for 'name' attribute
                 'value'       => esc_attr($data['groups']),
-                'option_name' => $option_name
+                'option_name' => $option_name,
+                'help' => 'Groupe permettant l’accès administrateur.'
             )
         );
-
     }
 
-    public function eg_setting_section_info()
-    {
-        echo '<p>Intro text for our settings section</p>';
-    }
     public function validate_settings_cb()
     {
         if (false) {
@@ -277,6 +274,9 @@ function epfl_tequila_render_input($args)
         $args['value']
     );
     // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
+    if ($args['help']) {
+        echo '<br />&nbsp;<i>' . $args['help'] . '</i>';
+    }
 }
 
 function epfl_tequila_render_dropdown($args)
@@ -296,8 +296,10 @@ function epfl_tequila_render_dropdown($args)
             $title
         );
     }
-
     print '</select>';
+    if ($args['help']) {
+        echo '<br />&nbsp;<i>' . $args['help'] . '</i>';
+    }
 
     // t5_sae_debug_var( func_get_args(), __FUNCTION__ );
 }
@@ -311,6 +313,9 @@ function epfl_tequila_render_textarea($args)
         $args['label_for'],
         $args['value']
     );
+    if ($args['help']) {
+        echo '<br />&nbsp;<i>' . $args['help'] . '</i>';
+    }
 }
 
 TequilaLogin::getInstance()->hook();
