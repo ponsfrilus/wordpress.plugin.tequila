@@ -1,7 +1,17 @@
 <?php
 
+define('LNG_DEUTSCH', 2);
+define('LNG_ENGLISH', 1);
+define('LNG_FRENCH',  0);
+
+
 class TequilaClient {
     var $sServerUrl = "https://tequila.epfl.ch/cgi-bin/tequila";
+    var $iLanguage = LNG_FRENCH;
+  var $aLanguages = array (
+			   LNG_ENGLISH => 'english',
+			    LNG_FRENCH => 'francais',
+			   );
 
   /* GOAL : Launch the user authentication 
    * Precondition: The user is *not* logged in
@@ -144,5 +154,43 @@ class TequilaClient {
         curl_close ($ch);
         return $response;
     }
+
+  /* Caller of Authenticate() may call these accessors to improvify
+   * the user experience and the loot of data that Tequila returns. */
+  function SetApplicationName ($sApplicationName) {
+    $this->sApplicationName = $sApplicationName;
+  }
+  function SetLanguage ($sLanguage) {
+    $this->iLanguage = $sLanguage;
+  }
+  function SetWantedAttributes ($aWantedAttributes) {
+    $this->aWantedAttributes = $aWantedAttributes;
+  }
+  function AddWantedAttributes ($aWantedAttributes) {
+    $this->aWantedAttributes = array_merge ($this->aWantedAttributes,
+					    $aWantedAttributes);
+  }
+  function RemoveWantedAttributes ($aWantedAttributes) {
+    foreach ($this->aWantedAttributes as $sWantedAttribute)
+      if (in_array($sWantedAttribute, $aWantedAttributes))
+	unset ($this->aWantedAttributes [array_search($sWantedAttribute,
+	  $this->aWantedAttributes)]);
+  }
+
+  function SetWishedAttributes ($aWishedAttributes) {
+    $this->aWishedAttributes = $aWishedAttributes;
+  }
+  function AddWishedAttributes ($aWishedAttributes) {
+    $this->aWishedAttributes = array_merge ($this->aWishedAttributes,
+					    $aWishedAttributes);
+  }
+  function RemoveWishedAttributes ($aWishedAttributes) {
+    foreach ($this->aWishedAttributes as $aWishedAttribute)
+      if (in_array($aWishedAttribute, $aWishedAttributes))
+	unset ($this->aWishedAttributes[array_search($aWishedAttribute,
+	  $this->aWishedAttributes)]);
+  }
+
+
 }
 

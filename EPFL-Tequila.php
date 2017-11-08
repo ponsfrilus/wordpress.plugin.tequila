@@ -188,6 +188,11 @@ class TequilaLogin {
 
     function start_authentication() {
         $client = new TequilaClient();
+        $client->SetApplicationName(__('Administration WordPress — ', 'epfl-tequila') . get_bloginfo( 'name' ));
+        $client->SetWantedAttributes(array('name', 'firstname', 'displayname', 'username',
+                  'personaltitle',
+                  'email', 'title', 'title-en',
+                  'uniqueid'));
         $client->Authenticate(plugin_dir_url( __FILE__ ) . "/back-from-Tequila.php");
     }
 }
